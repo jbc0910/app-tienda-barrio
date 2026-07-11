@@ -19,8 +19,8 @@ const MainNavigator = () => {
   switch (currentScreen) {
     case 'LOGIN':
       return <LoginScreen />;
-    case 'REGISTER': // Nueva línea agregada
-      return <RegisterScreen />; // Nueva línea agregada
+    case 'REGISTER':
+      return <RegisterScreen />; 
     case 'SETUP_TIENDA':
       return <View style={styles.center}><Text style={styles.textTitulo}>Configurar Tienda 🏪</Text></View>;
     case 'DASHBOARD':

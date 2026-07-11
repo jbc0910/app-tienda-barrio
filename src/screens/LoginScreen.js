@@ -27,13 +27,13 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.card}>
-        <Input label="Email" icon="email-outline" iconColor={theme.colors.primary} placeholder="tu@email.com" />
+        <Input label="Email" icon="email-outline" iconColor={theme.colors.onPrimaryContainer} placeholder="tu@email.com" />
         
         <View style={styles.passwordHeader}>
           <Text style={styles.label}>Password</Text>
           <TouchableOpacity><Text style={styles.forgotText}>¿Olvidaste?</Text></TouchableOpacity>
         </View>
-        <Input icon="lock-outline" iconColor="#91D5AC" placeholder="********" secureTextEntry />
+        <Input icon="lock-outline" iconColor={theme.colors.onPrimaryContainer} placeholder="********" secureTextEntry />
         
         <Button title="Acceder" />
 

@@ -3,11 +3,16 @@ import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../styles/theme';
 
-export const Input = ({ label, icon, ...props }) => (
+export const Input = ({ label, icon, iconColor, ...props }) => (
   <View style={styles.wrapper}>
-    <Text style={styles.label}>{label}</Text>
+    {label && <Text style={styles.label}>{label}</Text>}
     <View style={styles.inputContainer}>
-      <MaterialCommunityIcons name={icon} size={20} color={theme.colors.onSurfaceVariant} style={styles.icon} />
+      <MaterialCommunityIcons 
+        name={icon} 
+        size={20} 
+        color={iconColor || theme.colors.onSurfaceVariant} 
+        style={styles.icon} 
+      />
       <TextInput 
         style={styles.input} 
         placeholderTextColor={theme.colors.onSurfaceVariant}
@@ -29,6 +34,6 @@ const styles = StyleSheet.create({
     borderRadius: theme.rounded.md,
     paddingHorizontal: theme.spacing.sm,
   },
-  icon: { marginRight: 15, color: theme.colors.onPrimaryContainer },
+  icon: { marginRight: 15 }, 
   input: { flex: 1, paddingVertical: 12, color: theme.colors.onSurface }
 });
