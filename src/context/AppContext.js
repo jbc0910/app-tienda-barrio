@@ -12,7 +12,6 @@ const AppContext = createContext(undefined);
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [tienda, setTienda] = useState(null);
-  const [currentScreen, setCurrentScreen] = useState('SPLASH');
   const [isGlobalLoading, setIsGlobalLoading] = useState(true);
 
   const resolveTiendaParaUsuario = useCallback(async (authUser) => {
@@ -26,19 +25,11 @@ export const AppProvider = ({ children }) => {
       console.error('[AppContext] Error consultando tienda:', tiendaError.message);
       setUser(authUser);
       setTienda(null);
-      setCurrentScreen('LOGIN');
       return;
     }
 
     setUser(authUser);
-
-    if (tiendaData) {
-      setTienda(tiendaData);
-      setCurrentScreen('DASHBOARD');
-    } else {
-      setTienda(null);
-      setCurrentScreen('SETUP_TIENDA');
-    }
+    setTienda(tiendaData ?? null);
   }, []);
 
   const checkSession = useCallback(async () => {
@@ -50,7 +41,6 @@ export const AppProvider = ({ children }) => {
         console.error('[AppContext] Error obteniendo sesión:', error.message);
         setUser(null);
         setTienda(null);
-        setCurrentScreen('LOGIN');
         return;
       }
 
@@ -59,7 +49,6 @@ export const AppProvider = ({ children }) => {
       if (!session) {
         setUser(null);
         setTienda(null);
-        setCurrentScreen('LOGIN');
         return;
       }
 
@@ -68,7 +57,6 @@ export const AppProvider = ({ children }) => {
       console.error('[AppContext] Excepción en checkSession:', err);
       setUser(null);
       setTienda(null);
-      setCurrentScreen('LOGIN');
     } finally {
       setIsGlobalLoading(false);
     }
@@ -82,7 +70,6 @@ export const AppProvider = ({ children }) => {
         if (event === 'SIGNED_OUT' || !session) {
           setUser(null);
           setTienda(null);
-          setCurrentScreen('LOGIN');
           setIsGlobalLoading(false);
           return;
         }
@@ -110,11 +97,10 @@ export const AppProvider = ({ children }) => {
     try {
       await supabase.auth.signOut();
     } catch (err) {
-      console.error('[AppContext] Error en signOut (se limpia estado local igual):', err);
+      console.error('[AppContext] Error en signOut:', err);
     } finally {
       setUser(null);
       setTienda(null);
-      setCurrentScreen('LOGIN');
     }
   }, []);
 
@@ -122,8 +108,6 @@ export const AppProvider = ({ children }) => {
     user,
     tienda,
     setTienda,
-    currentScreen,
-    setCurrentScreen,
     isGlobalLoading,
     checkSession,
     signOut,
