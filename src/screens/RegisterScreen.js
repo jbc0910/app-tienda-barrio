@@ -15,6 +15,7 @@ import { useApp } from '../context/AppContext';
 import { theme } from '../styles/theme';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
+import { supabase } from '../config/supabase';
 
 export default function RegisterScreen({ navigation }) {
   const { checkSession } = useApp();
