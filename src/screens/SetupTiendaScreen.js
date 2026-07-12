@@ -1,90 +1,194 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Alert } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../config/supabase';
 import { theme } from '../styles/theme';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 
-export default function SetupTiendaScreen() {
-  const { user, setTienda, setCurrentScreen } = useApp();
-  const [loading, setLoading] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    nombre: '',
-    categoria: '', // Podrías usar un Picker si prefieres, por ahora text input
-    direccion: '',
-    telefono: '',
-  });
+/**
+ * Normaliza un texto a un slug válido para dominio/URL:
+ * minúsculas, sin acentos, solo [a-z0-9-], sin guiones repetidos ni en extremos.
+ */
+const sanitizeSlug = (text) =>
+  text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // quita acentos
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
 
-  const handleCreateTienda = async () => {
-    if (!formData.nombre || !formData.categoria) {
-      Alert.alert('Error', 'Por favor llena los campos obligatorios');
+const SLUG_CHECK_DEBOUNCE_MS = 500;
+
+export default function SetupTiendaScreen() {
+  const { user, setTienda } = useApp();
+
+  const [nombreTienda, setNombreTienda] = useState('');
+  const [slug, setSlug] = useState('');
+  const [slugEditedManually, setSlugEditedManually] = useState(false);
+  const [telefonoWhatsapp, setTelefonoWhatsapp] = useState('');
+
+  const [slugStatus, setSlugStatus] = useState('idle'); // idle | checking | available | taken
+  const [errors, setErrors] = useState({});
+  const [globalError, setGlobalError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const debounceRef = useRef(null);
+
+  // Autogenera el slug a partir del nombre, salvo que el usuario lo haya editado a mano.
+  useEffect(() => {
+    if (!slugEditedManually) {
+      setSlug(sanitizeSlug(nombreTienda));
+    }
+  }, [nombreTienda, slugEditedManually]);
+
+  // Valida disponibilidad del slug en tiempo real (debounced).
+  useEffect(() => {
+    if (!slug) {
+      setSlugStatus('idle');
       return;
     }
 
+    setSlugStatus('checking');
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      const { data, error } = await supabase
+        .from('tiendas')
+        .select('id')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[SetupTienda] Error verificando slug:', error.message);
+        setSlugStatus('idle');
+        return;
+      }
+      setSlugStatus(data ? 'taken' : 'available');
+    }, SLUG_CHECK_DEBOUNCE_MS);
+
+    return () => clearTimeout(debounceRef.current);
+  }, [slug]);
+
+  const validate = () => {
+    const newErrors = {};
+    if (!nombreTienda.trim()) newErrors.nombreTienda = 'El nombre de la tienda es requerido';
+    if (!slug) newErrors.slug = 'La URL de tu tienda es requerida';
+    else if (slugStatus === 'taken') newErrors.slug = 'Esta URL ya está en uso';
+    if (telefonoWhatsapp && !/^\+?\d{7,15}$/.test(telefonoWhatsapp.replace(/\s/g, ''))) {
+      newErrors.telefonoWhatsapp = 'Número inválido (incluye código de país, ej. +57...)';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCreateTienda = useCallback(async () => {
+    setGlobalError('');
+    if (!validate()) return;
+
     setLoading(true);
-    
-    // Insertamos en Supabase
     const { data, error } = await supabase
       .from('tiendas')
-      .insert([
-        {
-          usuario_id: user.id,
-          nombre: formData.nombre,
-          categoria: formData.categoria,
-          direccion: formData.direccion,
-          telefono: formData.telefono,
-        },
-      ])
+      .insert({
+        usuario_id: user.id,
+        nombre_tienda: nombreTienda.trim(),
+        slug,
+        telefono_whatsapp: telefonoWhatsapp.trim() || null,
+      })
       .select()
       .single();
 
     if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      setTienda(data);
-      setCurrentScreen('DASHBOARD');
+      if (error.code === '23505') {
+        // Violación de restricción única (slug o dominio duplicado, condición de carrera).
+        setErrors((e) => ({ ...e, slug: 'Esta URL acaba de ser tomada, elige otra' }));
+        setSlugStatus('taken');
+      } else {
+        setGlobalError(error.message);
+      }
+      setLoading(false);
+      return;
     }
+
+    setTienda(data);
+    // La navegación al Dashboard ocurre automáticamente en App.js al
+    // detectar que `tienda` dejó de ser null.
     setLoading(false);
-  };
+  }, [nombreTienda, slug, telefonoWhatsapp, user, setTienda]);
+
+  const slugHint = {
+    idle: '',
+    checking: 'Verificando disponibilidad...',
+    available: 'Disponible ✓',
+    taken: 'Esta URL ya está en uso',
+  }[slugStatus];
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Configura tu tienda</Text>
         <Text style={styles.subtitle}>Completa los datos para comenzar.</Text>
 
+        {globalError ? (
+          <View style={styles.errorBanner}>
+            <MaterialCommunityIcons name="alert-circle-outline" size={16} color="#f87171" />
+            <Text style={styles.errorBannerText}>{globalError}</Text>
+          </View>
+        ) : null}
+
         <View style={styles.form}>
-          <Input 
-            label="Nombre de la Tienda" 
-            icon="store-outline" 
-            value={formData.nombre}
-            onChangeText={(text) => setFormData({...formData, nombre: text})}
-          />
-          <Input 
-            label="Categoría" 
-            icon="shape-outline" 
-            value={formData.categoria}
-            onChangeText={(text) => setFormData({...formData, categoria: text})}
-          />
-          <Input 
-            label="Dirección" 
-            icon="map-marker-outline" 
-            value={formData.direccion}
-            onChangeText={(text) => setFormData({...formData, direccion: text})}
-          />
-          <Input 
-            label="Teléfono" 
-            icon="phone-outline" 
-            value={formData.telefono}
-            onChangeText={(text) => setFormData({...formData, telefono: text})}
+          <Input
+            label="Nombre de la Tienda"
+            icon="store-outline"
+            placeholder="Ej. El Mercadito"
+            value={nombreTienda}
+            onChangeText={setNombreTienda}
+            error={errors.nombreTienda}
+            autoCapitalize="words"
           />
 
-          <Button 
-            title={loading ? "Guardando..." : "Continuar"} 
-            onPress={handleCreateTienda} 
-            disabled={loading}
+          <Input
+            label="URL de tu tienda"
+            icon="link-variant"
+            placeholder="el-mercadito"
+            value={slug}
+            onChangeText={(t) => {
+              setSlugEditedManually(true);
+              setSlug(sanitizeSlug(t));
+            }}
+            error={errors.slug || (slugStatus === 'taken' ? slugHint : undefined)}
+            autoCapitalize="none"
+          />
+          {!errors.slug && slugHint ? (
+            <Text
+              style={[
+                styles.slugHint,
+                slugStatus === 'available' && styles.slugHintAvailable,
+              ]}
+            >
+              {slugHint}
+            </Text>
+          ) : null}
+
+          <Input
+            label="WhatsApp de la tienda"
+            icon="whatsapp"
+            placeholder="+57 300 000 0000"
+            keyboardType="phone-pad"
+            value={telefonoWhatsapp}
+            onChangeText={setTelefonoWhatsapp}
+            error={errors.telefonoWhatsapp}
+          />
+
+          <Button
+            title={loading ? 'Guardando...' : 'Continuar'}
+            onPress={handleCreateTienda}
+            loading={loading}
+            disabled={loading || slugStatus === 'checking'}
           />
         </View>
       </ScrollView>
@@ -95,7 +199,36 @@ export default function SetupTiendaScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   scrollContent: { padding: theme.spacing.lg, flexGrow: 1, justifyContent: 'center' },
-  title: { ...theme.typography.headlineLg, color: theme.colors.onSurface, textAlign: 'center', marginBottom: theme.spacing.sm },
-  subtitle: { ...theme.typography.bodyLg, color: theme.colors.onSurfaceVariant, textAlign: 'center', marginBottom: theme.spacing.xl },
-  form: { gap: theme.spacing.md }
+  title: {
+    ...theme.typography.headlineLg,
+    color: theme.colors.onSurface,
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  subtitle: {
+    ...theme.typography.bodyLg,
+    color: theme.colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
+  },
+  form: { gap: theme.spacing.md },
+  slugHint: {
+    fontSize: 12,
+    color: theme.colors.onSurfaceVariant,
+    marginTop: -theme.spacing.sm,
+    marginLeft: 4,
+  },
+  slugHintAvailable: { color: '#4ade80' },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(248,113,113,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(248,113,113,0.3)',
+    borderRadius: theme.rounded.sm,
+    padding: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+    gap: 8,
+  },
+  errorBannerText: { color: '#f87171', fontSize: 13, flex: 1 },
 });

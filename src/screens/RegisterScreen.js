@@ -11,15 +11,11 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { supabase } from '../config/supabase';
-import { useApp } from '../context/AppContext';
 import { theme } from '../styles/theme';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 
 export default function RegisterScreen({ navigation }) {
-  const { checkSession } = useApp();
-
-  const [storeName, setStoreName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,8 +25,6 @@ export default function RegisterScreen({ navigation }) {
   /** Validación básica del formulario */
   const validate = () => {
     const newErrors = {};
-    if (!storeName.trim()) newErrors.storeName = 'El nombre de la tienda es requerido';
-    else if (storeName.trim().length < 2) newErrors.storeName = 'Mínimo 2 caracteres';
     if (!email.trim()) newErrors.email = 'El email es requerido';
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email inválido';
     if (!password) newErrors.password = 'La contraseña es requerida';
@@ -66,19 +60,13 @@ export default function RegisterScreen({ navigation }) {
         return;
       }
 
-      // 2. Crear registro de tienda vinculado al usuario
-      const { error: tiendaError } = await supabase.from('tiendas').insert({
-        usuario_id: newUser.id,
-        nombre: storeName.trim(),
-      });
-
-      if (tiendaError) {
-        console.error('[RegisterScreen] Error creando tienda:', tiendaError.message);
-        // El usuario fue creado, pero la tienda falló — checkSession resuelve el estado
+      // La creación de la tienda ocurre en SetupTiendaScreen (paso obligatorio
+      // siguiente). Si Supabase ya generó una sesión (confirmación de email
+      // deshabilitada), onAuthStateChange en AppContext detecta el login y
+      // navega automáticamente a SetupTienda al no encontrar tienda asociada.
+      if (!data?.session) {
+        setGlobalError('Cuenta creada. Revisa tu email para confirmar el acceso.');
       }
-
-      // 3. Refrescar sesión para que AppContext actualice el estado y navegue
-      await checkSession();
     } catch (err) {
       setGlobalError('Error de conexión. Intenta de nuevo.');
       console.error('[RegisterScreen] Error inesperado:', err);
@@ -140,19 +128,6 @@ export default function RegisterScreen({ navigation }) {
             ) : null}
 
             <Input
-              label="Nombre de la Tienda"
-              icon="store-outline"
-              placeholder="Ej. El Mercadito"
-              value={storeName}
-              onChangeText={(t) => {
-                setStoreName(t);
-                setErrors((e) => ({ ...e, storeName: undefined }));
-              }}
-              error={errors.storeName}
-              autoCapitalize="words"
-            />
-
-            <Input
               label="Email"
               icon="email-outline"
               placeholder="hola@tu-tienda.com"
@@ -185,6 +160,17 @@ export default function RegisterScreen({ navigation }) {
               disabled={loading}
             />
           </View>
+
+          <Text style={styles.orText}>o continuar con</Text>
+          
+            <View style={styles.socialContainer}>
+              <TouchableOpacity style={styles.socialButton}>
+                <MaterialCommunityIcons name="google" size={20} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.socialButton}>
+                <MaterialCommunityIcons name="apple" size={20} color="white" />
+              </TouchableOpacity>
+           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -195,6 +181,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: theme.spacing.md,
   },
   scrollContent: {
     flexGrow: 1,
@@ -268,5 +259,17 @@ const styles = StyleSheet.create({
     color: '#f87171',
     fontSize: 13,
     flex: 1,
+  },
+  socialContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+  },
+  socialButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: theme.colors.outline,
+    padding: 12,
+    alignItems: 'center',
+    borderRadius: theme.rounded.sm,
   },
 });

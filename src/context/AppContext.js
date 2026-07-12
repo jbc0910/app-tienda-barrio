@@ -42,12 +42,31 @@ export const AppProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, [resolveTienda]);
 
+  /**
+   * Refresca manualmente el estado de sesión/tienda.
+   * Necesario tras operaciones que no disparan onAuthStateChange
+   * de forma confiable (ej. justo después de crear la tienda).
+   */
+  const refreshTienda = useCallback(async () => {
+    const { data } = await supabase.auth.getSession();
+    const currentUser = data.session?.user || null;
+    setUser(currentUser);
+    await resolveTienda(currentUser);
+  }, [resolveTienda]);
+
   const signOut = useCallback(async () => {
+    // Limpieza síncrona antes de la llamada de red: evita que datos
+    // de la sesión anterior queden visibles brevemente en dispositivos
+    // compartidos (ej. "Don Pedro" -> "Doña María").
+    setUser(null);
+    setTienda(null);
     await supabase.auth.signOut();
   }, []);
 
   return (
-    <AppContext.Provider value={{ user, tienda, setTienda, isGlobalLoading, signOut }}>
+    <AppContext.Provider
+      value={{ user, tienda, setTienda, isGlobalLoading, signOut, refreshTienda }}
+    >
       {children}
     </AppContext.Provider>
   );

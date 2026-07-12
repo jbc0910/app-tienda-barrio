@@ -25,6 +25,15 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Necesitamos acceder a tus fotos para que subas imágenes de tus productos.",
+          "cameraPermission": "Necesitamos acceder a tu cámara para que tomes fotos de tus productos."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "f5f29f05-3fbc-4f44-b160-c4db319981a5"

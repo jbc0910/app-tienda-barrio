@@ -22,7 +22,6 @@ export default function LoginScreen({ navigation }) {
   const [errors, setErrors] = useState({});
   const [globalError, setGlobalError] = useState('');
 
-  /** Validación básica antes de llamar a Supabase */
   const validate = () => {
     const newErrors = {};
     if (!email.trim()) newErrors.email = 'El email es requerido';
@@ -51,7 +50,6 @@ export default function LoginScreen({ navigation }) {
             : error.message
         );
       }
-      // Si no hay error, onAuthStateChange en AppContext redirige automáticamente
     } catch (err) {
       setGlobalError('Error de conexión. Intenta de nuevo.');
       console.error('[LoginScreen] Error inesperado:', err);
