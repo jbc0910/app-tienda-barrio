@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../config/supabase';
 
 const AppContext = createContext(undefined);
@@ -14,106 +8,49 @@ export const AppProvider = ({ children }) => {
   const [tienda, setTienda] = useState(null);
   const [isGlobalLoading, setIsGlobalLoading] = useState(true);
 
-  const resolveTiendaParaUsuario = useCallback(async (authUser) => {
-    const { data: tiendaData, error: tiendaError } = await supabase
+  const resolveTienda = useCallback(async (authUser) => {
+    if (!authUser) {
+      setTienda(null);
+      return;
+    }
+    const { data, error } = await supabase
       .from('tiendas')
       .select('*')
       .eq('usuario_id', authUser.id)
       .maybeSingle();
-
-    if (tiendaError) {
-      console.error('[AppContext] Error consultando tienda:', tiendaError.message);
-      setUser(authUser);
-      setTienda(null);
-      return;
-    }
-
-    setUser(authUser);
-    setTienda(tiendaData ?? null);
+    
+    if (error) console.error('[AppContext] Error fetching tienda:', error);
+    setTienda(data || null);
   }, []);
-
-  const checkSession = useCallback(async () => {
-    setIsGlobalLoading(true);
-    try {
-      const { data, error } = await supabase.auth.getSession();
-
-      if (error) {
-        console.error('[AppContext] Error obteniendo sesión:', error.message);
-        setUser(null);
-        setTienda(null);
-        return;
-      }
-
-      const session = data?.session;
-
-      if (!session) {
-        setUser(null);
-        setTienda(null);
-        return;
-      }
-
-      await resolveTiendaParaUsuario(session.user);
-    } catch (err) {
-      console.error('[AppContext] Excepción en checkSession:', err);
-      setUser(null);
-      setTienda(null);
-    } finally {
-      setIsGlobalLoading(false);
-    }
-  }, [resolveTiendaParaUsuario]);
 
   useEffect(() => {
-    checkSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_OUT' || !session) {
-          setUser(null);
-          setTienda(null);
-          setIsGlobalLoading(false);
-          return;
-        }
-
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setUser((prevUser) => {
-            if (prevUser?.id === session.user.id && event === 'TOKEN_REFRESHED') {
-              return prevUser;
-            }
-            resolveTiendaParaUsuario(session.user).finally(() =>
-              setIsGlobalLoading(false)
-            );
-            return prevUser;
-          });
-        }
+    const initAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setUser(data.session.user);
+        await resolveTienda(data.session.user);
       }
-    );
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
+      setIsGlobalLoading(false);
     };
-  }, []);
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user || null);
+      await resolveTienda(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [resolveTienda]);
 
   const signOut = useCallback(async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (err) {
-      console.error('[AppContext] Error en signOut:', err);
-    } finally {
-      setUser(null);
-      setTienda(null);
-    }
+    await supabase.auth.signOut();
   }, []);
 
-  const value = {
-    user,
-    tienda,
-    setTienda,
-    isGlobalLoading,
-    checkSession,
-    signOut,
-  };
-
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={{ user, tienda, setTienda, isGlobalLoading, signOut }}>
+      {children}
+    </AppContext.Provider>
+  );
 };
 
 export const useApp = () => {
