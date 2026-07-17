@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
@@ -20,11 +21,13 @@ import {
   updateProducto,
   deleteProducto,
 } from '../services/products';
+import { listCategorias } from '../services/categorias';
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }) {
   const { tienda, signOut } = useApp();
 
   const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [listError, setListError] = useState('');
@@ -37,10 +40,14 @@ export default function DashboardScreen() {
     if (!tienda?.id) return;
     try {
       setListError('');
-      const data = await listProductos(tienda.id);
-      setProductos(data);
+      const [productosData, categoriasData] = await Promise.all([
+        listProductos(tienda.id),
+        listCategorias(tienda.id)
+      ]);
+      setProductos(productosData);
+      setCategorias(categoriasData);
     } catch (err) {
-      console.error('[Dashboard] Error cargando productos:', err);
+      console.error('[Dashboard] Error cargando datos:', err);
       setListError('No se pudieron cargar los productos. Desliza para reintentar.');
     } finally {
       setLoadingList(false);
@@ -116,15 +123,26 @@ export default function DashboardScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>{tienda?.nombre_tienda ?? 'Tu tienda'}</Text>
-          <Text style={styles.headerSubtitle}>
-            {productos.length} {productos.length === 1 ? 'producto' : 'productos'}
-          </Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>{tienda?.nombre_tienda ?? 'Panel Admin'}</Text>
+            <Text style={styles.headerSubtitle}>
+              {productos.length} {productos.length === 1 ? 'producto' : 'productos'}
+            </Text>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={styles.viewStoreBtn}
+              onPress={() => navigation.navigate('Catalogo', { tiendaId: tienda.id })}
+            >
+              <MaterialCommunityIcons name="storefront-outline" size={18} color={theme.colors.orangeText} />
+              <Text style={styles.viewStoreText}>Ver Tienda</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={signOut} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <MaterialCommunityIcons name="logout" size={24} color={theme.colors.onPrimary} />
+            </TouchableOpacity>
+          </View>
         </View>
-        <TouchableOpacity onPress={signOut} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <MaterialCommunityIcons name="logout" size={22} color={theme.colors.onSurfaceVariant} />
-        </TouchableOpacity>
       </View>
 
       {loadingList ? (
@@ -167,12 +185,13 @@ export default function DashboardScreen() {
       )}
 
       <TouchableOpacity style={styles.fab} onPress={openCreateModal} activeOpacity={0.85}>
-        <MaterialCommunityIcons name="plus" size={28} color={theme.colors.onPrimary} />
+        <MaterialCommunityIcons name="plus" size={28} color={theme.colors.orangeText} />
       </TouchableOpacity>
 
       <ProductFormModal
         visible={modalVisible}
         producto={productoEnEdicion}
+        categorias={categorias}
         onClose={() => setModalVisible(false)}
         onSubmit={handleSubmit}
         loading={savingProducto}
@@ -184,15 +203,37 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   header: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: theme.spacing.lg,
+  },
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.xl,
-    paddingBottom: theme.spacing.md,
   },
-  headerTitle: { ...theme.typography.titleMd, color: theme.colors.onSurface },
-  headerSubtitle: { fontSize: 12, color: theme.colors.onSurfaceVariant, marginTop: 2 },
+  headerTitle: { ...theme.typography.titleMd, color: theme.colors.onPrimary },
+  headerSubtitle: { fontSize: 13, color: theme.colors.primaryLight, marginTop: 2 },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  viewStoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.orange,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: theme.rounded.sm,
+    gap: 6,
+  },
+  viewStoreText: {
+    color: theme.colors.orangeText,
+    fontWeight: '700',
+    fontSize: 13,
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { paddingHorizontal: theme.spacing.lg, paddingBottom: 100, flexGrow: 1 },
   emptyState: { alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 80 },
@@ -210,7 +251,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: theme.rounded.full,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.orange,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,

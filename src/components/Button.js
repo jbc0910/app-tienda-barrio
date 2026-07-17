@@ -2,54 +2,112 @@ import React from 'react';
 import {
   TouchableOpacity,
   Text,
-  StyleSheet,
   ActivityIndicator,
+  StyleSheet,
+  View,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../styles/theme';
 
 /**
- * Botón primario reutilizable.
+ * Botón reutilizable con dos variantes de marca:
  *
- * Props:
- *  - title      {string}    Texto del botón
- *  - onPress    {function}  Callback al presionar
- *  - loading    {boolean}   Muestra spinner y deshabilita el botón
- *  - disabled   {boolean}   Deshabilita el botón visualmente
+ *  variant="primary"  → forest-dark (#012d1d) — acciones institucionales
+ *  variant="orange"   → orange-cta (#fd8603)  — acciones de conversión (CTA)
+ *  variant="outline"  → borde primario, fondo transparente
+ *  variant="ghost"    → sin fondo ni borde, solo texto
+ *
+ * Props adicionales:
+ *  - icon   {string}  nombre del ícono (MaterialCommunityIcons) — opcional
+ *  - style  {}        estilos de overwrite del contenedor
  */
-export const Button = ({ title, onPress, loading = false, disabled = false }) => {
-  const isDisabled = loading || disabled;
+export const Button = ({
+  title,
+  onPress,
+  loading = false,
+  disabled = false,
+  variant = 'primary',
+  icon,
+  style,
+}) => {
+  const isOrange  = variant === 'orange';
+  const isOutline = variant === 'outline';
+  const isGhost   = variant === 'ghost';
+
+  const textColor = isOrange
+    ? theme.colors.orangeText
+    : isOutline || isGhost
+      ? theme.colors.primary
+      : theme.colors.onPrimary;
 
   return (
     <TouchableOpacity
-      style={[styles.button, isDisabled && styles.buttonDisabled]}
+      style={[
+        styles.base,
+        isOrange  && styles.orange,
+        isOutline && styles.outline,
+        isGhost   && styles.ghost,
+        !isOrange && !isOutline && !isGhost && styles.primary,
+        (disabled || loading) && styles.disabled,
+        style,
+      ]}
       onPress={onPress}
-      disabled={isDisabled}
-      activeOpacity={0.8}
+      disabled={disabled || loading}
+      activeOpacity={0.82}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={theme.colors.onPrimary} />
+        <ActivityIndicator color={textColor} size="small" />
       ) : (
-        <Text style={styles.text}>{title}</Text>
+        <View style={styles.inner}>
+          {icon && (
+            <MaterialCommunityIcons
+              name={icon}
+              size={18}
+              color={textColor}
+              style={styles.icon}
+            />
+          )}
+          <Text style={[styles.text, { color: textColor }]}>{title}</Text>
+        </View>
       )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    backgroundColor: theme.colors.primary,
-    paddingVertical: theme.spacing.md,
+  base: {
+    paddingVertical: 14,
+    paddingHorizontal: theme.spacing.md,
     borderRadius: theme.rounded.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    minHeight: 50,
   },
-  buttonDisabled: {
-    opacity: 0.5,
+  primary: {
+    backgroundColor: theme.colors.primary,
+  },
+  orange: {
+    backgroundColor: theme.colors.orange,
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: theme.colors.primary,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+  },
+  disabled: {
+    opacity: 0.45,
+  },
+  inner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   text: {
-    color: theme.colors.onPrimary,
-    fontWeight: '600',
     fontSize: 16,
+    fontWeight: '700',
   },
+  icon: {},
 });

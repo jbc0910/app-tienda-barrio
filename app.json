@@ -15,6 +15,7 @@
       }
     },
     "android": {
+      "package": "com.jbarrios0910.apptiendabarrio",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

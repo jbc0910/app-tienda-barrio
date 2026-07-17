@@ -9,7 +9,7 @@ export const PRODUCTOS_BUCKET = 'productos-imagenes';
 export async function listProductos(tiendaId) {
   const { data, error } = await supabase
     .from('productos')
-    .select('*')
+    .select('*, categoria:categorias(id, nombre, icono)')
     .eq('tienda_id', tiendaId)
     .order('nombre', { ascending: true });
 
@@ -53,7 +53,7 @@ async function deleteProductoImagenSilencioso(imagenUrl) {
   if (error) console.warn('[products] No se pudo borrar la imagen anterior:', error.message);
 }
 
-export async function createProducto({ tiendaId, nombre, precio, stock, imageAsset }) {
+export async function createProducto({ tiendaId, nombre, precio, stock, categoria_id, precio_oferta, imageAsset }) {
   let imagen_url = null;
   if (imageAsset) {
     imagen_url = await uploadProductoImagen(tiendaId, imageAsset);
@@ -66,6 +66,8 @@ export async function createProducto({ tiendaId, nombre, precio, stock, imageAss
       nombre: nombre.trim(),
       precio,
       stock,
+      categoria_id,
+      precio_oferta: precio_oferta || null,
       imagen_url,
     })
     .select()
@@ -75,8 +77,14 @@ export async function createProducto({ tiendaId, nombre, precio, stock, imageAss
   return data;
 }
 
-export async function updateProducto(producto, { nombre, precio, stock, imageAsset }) {
-  const updates = { nombre: nombre.trim(), precio, stock };
+export async function updateProducto(producto, { nombre, precio, stock, categoria_id, precio_oferta, imageAsset }) {
+  const updates = { 
+    nombre: nombre.trim(), 
+    precio, 
+    stock,
+    categoria_id,
+    precio_oferta: precio_oferta || null 
+  };
 
   if (imageAsset) {
     updates.imagen_url = await uploadProductoImagen(producto.tienda_id, imageAsset);

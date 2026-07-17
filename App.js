@@ -11,6 +11,9 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import SetupTiendaScreen from './src/screens/SetupTiendaScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
+import CatalogoScreen from './src/screens/CatalogoScreen';
+import CartScreen from './src/screens/CartScreen';
+import { CartProvider } from './src/context/CartContext';
 
 const Stack = createStackNavigator();
 
@@ -35,7 +38,11 @@ const RootNavigator = () => {
       ) : !tienda ? (
         <Stack.Screen name="SetupTienda" component={SetupTiendaScreen} />
       ) : (
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        <>
+          <Stack.Screen name="Dashboard" component={DashboardScreen} />
+          <Stack.Screen name="Catalogo" component={CatalogoScreen} />
+          <Stack.Screen name="Cart" component={CartScreen} />
+        </>
       )}
     </Stack.Navigator>
   );
@@ -57,9 +64,11 @@ export default function App() {
 
   return (
     <AppProvider>
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
+      <CartProvider>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </CartProvider>
     </AppProvider>
   );
 }

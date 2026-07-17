@@ -31,7 +31,17 @@ export const ProductCard = ({ producto, onEdit, onDelete }) => {
         <Text style={styles.nombre} numberOfLines={1}>
           {producto.nombre}
         </Text>
-        <Text style={styles.precio}>{formatPrecio(producto.precio)}</Text>
+        <Text style={styles.categoria}>
+          {producto.categoria?.nombre?.toUpperCase() || 'GENERAL'}
+        </Text>
+        <View style={styles.precioRow}>
+          <Text style={styles.precioFinal}>
+            {formatPrecio(producto.precio_oferta || producto.precio)}
+          </Text>
+          {producto.precio_oferta && (
+            <Text style={styles.precioAnterior}>{formatPrecio(producto.precio)}</Text>
+          )}
+        </View>
         <View style={styles.stockRow}>
           <View style={[styles.stockDot, sinStock && styles.stockDotEmpty]} />
           <Text style={[styles.stockText, sinStock && styles.stockTextEmpty]}>
@@ -72,7 +82,10 @@ const styles = StyleSheet.create({
   },
   info: { flex: 1, gap: 2 },
   nombre: { ...theme.typography.bodyLg, color: theme.colors.onSurface, fontWeight: '600' },
-  precio: { ...theme.typography.bodyLg, color: theme.colors.onPrimaryContainer },
+  categoria: { ...theme.typography.labelCaps, color: theme.colors.primaryLight },
+  precioRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  precioFinal: { ...theme.typography.bodyLg, color: theme.colors.primary, fontWeight: '700' },
+  precioAnterior: { fontSize: 12, color: theme.colors.onSurfaceVariant, textDecorationLine: 'line-through' },
   stockRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   stockDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#4ade80' },
   stockDotEmpty: { backgroundColor: '#f87171' },

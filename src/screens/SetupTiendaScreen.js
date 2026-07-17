@@ -6,6 +6,7 @@ import { supabase } from '../config/supabase';
 import { theme } from '../styles/theme';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
+import { seedCategoriasDefecto } from '../services/categorias';
 
 /**
  * Normaliza un texto a un slug válido para dominio/URL:
@@ -112,6 +113,12 @@ export default function SetupTiendaScreen() {
       }
       setLoading(false);
       return;
+    }
+
+    try {
+      await seedCategoriasDefecto(data.id);
+    } catch (seedErr) {
+      console.warn('[SetupTienda] No se pudieron precargar las categorías:', seedErr);
     }
 
     setTienda(data);

@@ -14,10 +14,11 @@ import { theme } from '../styles/theme';
 import { Input } from './Input';
 import { Button } from './Button';
 import { ImagePickerField } from './ImagePickerField';
+import { CategoryChips } from './CategoryChips';
 
-const emptyForm = { nombre: '', precio: '', stock: '' };
+const emptyForm = { nombre: '', precio: '', stock: '', categoria_id: null, precio_oferta: '' };
 
-export const ProductFormModal = ({ visible, producto, onClose, onSubmit, loading }) => {
+export const ProductFormModal = ({ visible, producto, categorias = [], onClose, onSubmit, loading }) => {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [imageAsset, setImageAsset] = useState(null); 
@@ -29,10 +30,12 @@ export const ProductFormModal = ({ visible, producto, onClose, onSubmit, loading
     if (visible) {
       setForm(
         producto
-          ? {
+            ? {
               nombre: producto.nombre ?? '',
               precio: String(producto.precio ?? ''),
               stock: String(producto.stock ?? ''),
+              categoria_id: producto.categoria_id ?? null,
+              precio_oferta: producto.precio_oferta ? String(producto.precio_oferta) : '',
             }
           : emptyForm
       );
@@ -56,6 +59,17 @@ export const ProductFormModal = ({ visible, producto, onClose, onSubmit, loading
       newErrors.stock = 'Stock inválido (número entero)';
     }
 
+    if (!form.categoria_id) {
+      newErrors.categoria = 'Selecciona una categoría';
+    }
+
+    if (form.precio_oferta) {
+      const ofertaNum = Number(form.precio_oferta.replace(',', '.'));
+      if (Number.isNaN(ofertaNum) || ofertaNum < 0 || ofertaNum >= precioNum) {
+        newErrors.precio_oferta = 'Debe ser menor al precio normal';
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -67,6 +81,8 @@ export const ProductFormModal = ({ visible, producto, onClose, onSubmit, loading
         nombre: form.nombre,
         precio: Number(form.precio.replace(',', '.')),
         stock: Number(form.stock),
+        categoria_id: form.categoria_id,
+        precio_oferta: form.precio_oferta ? Number(form.precio_oferta.replace(',', '.')) : null,
       },
       imageAsset
     );
@@ -115,6 +131,16 @@ export const ProductFormModal = ({ visible, producto, onClose, onSubmit, loading
               />
 
               <Input
+                label="Precio de oferta (Opcional)"
+                icon="sale"
+                placeholder="4000"
+                keyboardType="numeric"
+                value={form.precio_oferta}
+                onChangeText={(t) => setForm((f) => ({ ...f, precio_oferta: t }))}
+                error={errors.precio_oferta}
+              />
+
+              <Input
                 label="Stock disponible"
                 icon="package-variant-closed"
                 placeholder="10"
@@ -123,6 +149,17 @@ export const ProductFormModal = ({ visible, producto, onClose, onSubmit, loading
                 onChangeText={(t) => setForm((f) => ({ ...f, stock: t }))}
                 error={errors.stock}
               />
+
+              <View style={styles.categoriaSection}>
+                <Text style={styles.categoriaLabel}>Categoría</Text>
+                <CategoryChips 
+                  categorias={categorias} 
+                  activeId={form.categoria_id} 
+                  onSelect={(id) => setForm(f => ({ ...f, categoria_id: id }))} 
+                  hideAll={true} 
+                />
+                {errors.categoria && <Text style={styles.errorText}>{errors.categoria}</Text>}
+              </View>
 
               <Button
                 title={isEditing ? 'Guardar cambios' : 'Crear producto'}
@@ -160,4 +197,20 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   title: { ...theme.typography.titleMd, color: theme.colors.onSurface },
+  categoriaSection: {
+    marginBottom: theme.spacing.lg,
+  },
+  categoriaLabel: {
+    ...theme.typography.labelCaps,
+    color: theme.colors.onSurfaceVariant,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 12,
+    marginTop: -8,
+    marginLeft: 4,
+    marginBottom: 8,
+  }
 });
