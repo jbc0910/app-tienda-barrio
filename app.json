@@ -16,6 +16,7 @@
     },
     "android": {
       "package": "com.jbarrios0910.apptiendabarrio",
+      "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

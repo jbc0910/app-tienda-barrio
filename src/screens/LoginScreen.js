@@ -4,11 +4,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { supabase } from '../config/supabase';
 import { theme } from '../styles/theme';
@@ -60,15 +58,11 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           {/* Logo */}
           <View style={styles.logoCircle}>
             <MaterialCommunityIcons
@@ -159,8 +153,7 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -1,5 +1,12 @@
+import 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, LogBox } from 'react-native';
+
+// Suprimir advertencias internas de librerías de terceros que no son accionables
+LogBox.ignoreLogs([
+  'InteractionManager has been deprecated',
+]);
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as Linking from 'expo-linking';
@@ -63,13 +70,15 @@ export default function App() {
   }, []);
 
   return (
-    <AppProvider>
-      <CartProvider>
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-      </CartProvider>
-    </AppProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppProvider>
+        <CartProvider>
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+        </CartProvider>
+      </AppProvider>
+    </GestureHandlerRootView>
   );
 }
 

@@ -4,11 +4,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { supabase } from '../config/supabase';
 import { theme } from '../styles/theme';
@@ -77,15 +75,11 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
           {/* Logo */}
           <View style={styles.logoCircle}>
             <MaterialCommunityIcons
@@ -171,8 +165,7 @@ export default function RegisterScreen({ navigation }) {
                 <MaterialCommunityIcons name="apple" size={20} color="white" />
               </TouchableOpacity>
            </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -181,11 +174,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: theme.spacing.md,
   },
   scrollContent: {
     flexGrow: 1,
