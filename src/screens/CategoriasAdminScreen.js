@@ -34,7 +34,7 @@ const ICONOS_DISPONIBLES = [
   { nombre: 'Mascotas',         icono: 'paw-outline' },
   { nombre: 'Dulces',           icono: 'candy-outline' },
   { nombre: 'Café',             icono: 'coffee-outline' },
-  { nombre: 'Enlatados',        icono: 'canned-food' },
+  { nombre: 'Enlatados',        icono: 'archive-outline' },
   { nombre: 'Aceites',          icono: 'bottle-soda-outline' },
 ];
 

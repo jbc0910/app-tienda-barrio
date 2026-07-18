@@ -24,6 +24,8 @@ import {
 } from '../services/products';
 import { listCategorias } from '../services/categorias';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { exportarProductosExcel, leerExcelDeProductos } from '../services/importExport';
+import { createProducto as _createProductoRaw } from '../services/products';
 
 export default function ProductosAdminScreen({ navigation }) {
   const { tienda } = useApp();
@@ -38,6 +40,8 @@ export default function ProductosAdminScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [productoEnEdicion, setProductoEnEdicion] = useState(null);
   const [savingProducto, setSavingProducto] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const cargarProductos = useCallback(async () => {
     if (!tienda?.id) return;
@@ -113,12 +117,67 @@ export default function ProductosAdminScreen({ navigation }) {
               await deleteProducto(producto);
               setProductos((prev) => prev.filter((p) => p.id !== producto.id));
             } catch (err) {
-              Alert.alert('Error', 'No se pudo eliminar el producto.');
+              console.error('[Delete] Error eliminando producto:', JSON.stringify(err));
+              Alert.alert(
+                'Error al eliminar',
+                err.message || 'No se pudo eliminar el producto. Puede que falte un permiso en la base de datos.'
+              );
             }
           },
         },
       ]
     );
+  };
+
+  const handleExport = async () => {
+    if (productos.length === 0) {
+      Alert.alert('Sin productos', 'No hay productos para exportar.');
+      return;
+    }
+    setExporting(true);
+    try {
+      await exportarProductosExcel(productos);
+    } catch (err) {
+      console.error('[Export]', err);
+      Alert.alert('Error', err.message || 'No se pudo exportar.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleImport = async () => {
+    setImporting(true);
+    try {
+      const registros = await leerExcelDeProductos();
+      if (!registros) { setImporting(false); return; }
+      if (registros.length === 0) {
+        Alert.alert('Archivo válido, sin datos', 'La hoja de cálculo no tiene filas válidas.');
+        setImporting(false);
+        return;
+      }
+
+      // Insertar en lote
+      let exitosos = 0;
+      for (const r of registros) {
+        try {
+          const nuevo = await createProducto({ tiendaId: tienda.id, ...r, imageAsset: null });
+          setProductos(prev => [...prev, nuevo].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+          exitosos++;
+        } catch (e) {
+          console.warn('[Import] Fila fallida:', r.nombre, e.message);
+        }
+      }
+
+      Alert.alert(
+        'Importación completa',
+        `Se importaron ${exitosos} de ${registros.length} productos.`
+      );
+    } catch (err) {
+      console.error('[Import]', err);
+      Alert.alert('Error', err.message || 'No se pudo importar el archivo.');
+    } finally {
+      setImporting(false);
+    }
   };
 
   // Filtrado por buscador
@@ -133,7 +192,24 @@ export default function ProductosAdminScreen({ navigation }) {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{tienda?.nombre_tienda || 'Inventario'}</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.headerBtn} onPress={handleImport} disabled={importing}>
+            {importing
+              ? <ActivityIndicator size="small" color={theme.colors.primary} />
+              : <MaterialCommunityIcons name="tray-arrow-up" size={20} color={theme.colors.primary} />
+            }
+            <Text style={styles.headerBtnText}>Importar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.headerBtn, styles.headerBtnExport]} onPress={handleExport} disabled={exporting}>
+            {exporting
+              ? <ActivityIndicator size="small" color={theme.colors.orangeText} />
+              : <MaterialCommunityIcons name="tray-arrow-down" size={20} color={theme.colors.orangeText} />
+            }
+            <Text style={[styles.headerBtnText, { color: theme.colors.orangeText }]}>Exportar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
 
       <View style={styles.metricsContainer}>
         <View style={styles.metricCardFull}>
@@ -227,8 +303,12 @@ export default function ProductosAdminScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
-  header: { padding: 16, backgroundColor: theme.colors.surface, borderBottomWidth: 1, borderColor: theme.colors.outline },
+  header: { padding: 16, backgroundColor: theme.colors.surface, borderBottomWidth: 1, borderColor: theme.colors.outline, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerTitle: { fontSize: 20, fontWeight: '700', color: theme.colors.onSurface },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  headerBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: theme.colors.primaryContainer, borderRadius: 8 },
+  headerBtnExport: { backgroundColor: '#fff3e0' },
+  headerBtnText: { fontSize: 13, fontWeight: '600', color: theme.colors.primary },
   metricsContainer: { padding: 16, gap: 12 },
   metricsRow: { flexDirection: 'row', gap: 12 },
   metricCardFull: {
