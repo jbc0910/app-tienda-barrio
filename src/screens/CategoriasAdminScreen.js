@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: { padding: 16, backgroundColor: theme.colors.surface, borderBottomWidth: 1, borderColor: theme.colors.outline },
-  title: { fontSize: 20, fontFamily: theme.fonts.bold, color: theme.colors.onSurface },
+  title: { fontSize: 20, fontWeight: '700', color: theme.colors.onSurface },
   list: { padding: 16, gap: 12 },
   card: {
     backgroundColor: theme.colors.surface,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   cardInfo: { flexDirection: 'row', alignItems: 'center' },
   icon: { marginRight: 12 },
-  cardTitle: { fontSize: 16, fontFamily: theme.fonts.medium, color: theme.colors.onSurface },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: theme.colors.onSurface },
   cardActions: { flexDirection: 'row', gap: 8 },
   actionBtn: { padding: 8, backgroundColor: theme.colors.background, borderRadius: 8 },
   fab: {
@@ -224,8 +224,8 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: theme.colors.surface, padding: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', mb: 16 },
-  modalTitle: { fontSize: 18, fontFamily: theme.fonts.bold, color: theme.colors.onSurface },
-  label: { fontSize: 12, fontFamily: theme.fonts.medium, color: theme.colors.onSurfaceVariant, marginTop: 12, marginBottom: 4 },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.onSurface },
+  label: { fontSize: 12, fontWeight: '600', color: theme.colors.onSurfaceVariant, marginTop: 12, marginBottom: 4 },
   input: {
     height: 48,
     borderWidth: 1,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     fontSize: 14,
-    fontFamily: theme.fonts.regular,
+    fontWeight: '400',
     color: theme.colors.onSurface,
   },
   saveBtn: {
@@ -245,5 +245,5 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   saveBtnDisabled: { opacity: 0.7 },
-  saveBtnText: { color: theme.colors.onPrimary, fontFamily: theme.fonts.bold, fontSize: 16 },
+  saveBtnText: { color: theme.colors.onPrimary, fontWeight: '700', fontSize: 16 },
 });

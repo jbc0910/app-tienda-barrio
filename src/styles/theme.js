@@ -4,6 +4,11 @@
  * https://tienda-de-barrio.pages.dev/
  */
 export const theme = {
+  fonts: {
+    regular: undefined,
+    medium: undefined,
+    bold: undefined,
+  },
   colors: {
     // ── Fondos ──────────────────────────────────────────────────────
     background:    '#f0f1f2',   // bg-neutral: fondo general de la app

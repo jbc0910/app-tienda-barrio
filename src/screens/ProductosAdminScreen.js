@@ -141,7 +141,7 @@ export default function ProductosAdminScreen({ navigation }) {
             <Text style={styles.metricLabel}>Total de Productos</Text>
             <Text style={styles.metricValue}>{productos.length}</Text>
           </View>
-          <MaterialCommunityIcons name="inventory" size={32} color={theme.colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
+          <MaterialCommunityIcons name="package-variant-closed" size={32} color={theme.colors.onSurfaceVariant} style={{ opacity: 0.3 }} />
         </View>
 
         <View style={styles.metricsRow}>
@@ -228,7 +228,7 @@ export default function ProductosAdminScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   header: { padding: 16, backgroundColor: theme.colors.surface, borderBottomWidth: 1, borderColor: theme.colors.outline },
-  headerTitle: { fontSize: 20, fontFamily: theme.fonts.bold, color: theme.colors.onSurface },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: theme.colors.onSurface },
   metricsContainer: { padding: 16, gap: 12 },
   metricsRow: { flexDirection: 'row', gap: 12 },
   metricCardFull: {
@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  metricLabel: { fontSize: 11, fontFamily: theme.fonts.bold, color: theme.colors.onSurfaceVariant, textTransform: 'uppercase' },
-  metricValue: { fontSize: 24, fontFamily: theme.fonts.bold, color: theme.colors.onSurface, marginTop: 4 },
+  metricLabel: { fontSize: 11, fontWeight: '700', color: theme.colors.onSurfaceVariant, textTransform: 'uppercase' },
+  metricValue: { fontSize: 24, fontWeight: '700', color: theme.colors.onSurface, marginTop: 4 },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -269,11 +269,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.outline,
   },
-  searchInput: { flex: 1, marginLeft: 8, fontSize: 15, fontFamily: theme.fonts.medium, color: theme.colors.onSurface },
+  searchInput: { flex: 1, marginLeft: 8, fontSize: 15, fontWeight: '500', color: theme.colors.onSurface },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   listContent: { paddingHorizontal: 16, paddingBottom: 100, flexGrow: 1 },
   emptyState: { alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 40 },
-  emptyTitle: { fontSize: 15, fontFamily: theme.fonts.medium, color: theme.colors.onSurfaceVariant, textAlign: 'center' },
+  emptyTitle: { fontSize: 15, fontWeight: '500', color: theme.colors.onSurfaceVariant, textAlign: 'center' },
   fab: {
     position: 'absolute',
     right: 24,

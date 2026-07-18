@@ -24,7 +24,7 @@ export default function DashboardScreen() {
           height: 60,
         },
         tabBarLabelStyle: {
-          fontFamily: theme.fonts.medium,
+          fontWeight: '600',
           fontSize: 12,
         }
       }}
