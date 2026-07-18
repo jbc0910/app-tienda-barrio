@@ -1,15 +1,16 @@
 import 'react-native-gesture-handler';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator, LogBox } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as Linking from 'expo-linking';
 
 // Suprimir advertencias internas de librerías de terceros que no son accionables
 LogBox.ignoreLogs([
   'InteractionManager has been deprecated',
 ]);
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import * as Linking from 'expo-linking';
+
 import { AppProvider, useApp } from './src/context/AppContext';
 import { supabase } from './src/config/supabase';
 import { theme } from './src/styles/theme';
@@ -22,7 +23,7 @@ import CatalogoScreen from './src/screens/CatalogoScreen';
 import CartScreen from './src/screens/CartScreen';
 import { CartProvider } from './src/context/CartContext';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
   const { user, tienda, isGlobalLoading } = useApp();

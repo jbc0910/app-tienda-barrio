@@ -36,7 +36,11 @@ export const AppProvider = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user || null);
-      await resolveTienda(session?.user || null);
+      // Evitamos peticiones redundantes. initAuth ya carga la tienda al inicio,
+      // así que omitimos el evento INITIAL_SESSION y TOKEN_REFRESHED.
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        await resolveTienda(session?.user || null);
+      }
     });
 
     return () => subscription.unsubscribe();
