@@ -74,12 +74,6 @@ const styles = StyleSheet.create({
   },
   inputContainerFocused: {
     borderColor: theme.colors.primary,
-    // Glow state: sombra sutil en el color primario
-    shadowColor: theme.colors.primary,
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 2,
   },
   inputContainerError: {
     borderColor: theme.colors.error,

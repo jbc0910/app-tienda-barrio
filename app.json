@@ -16,13 +16,16 @@
     },
     "android": {
       "package": "com.jbarrios0910.apptiendabarrio",
-      "softwareKeyboardLayoutMode": "pan",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,12 +37,14 @@
           "photosPermission": "Necesitamos acceder a tus fotos para que subas imágenes de tus productos.",
           "cameraPermission": "Necesitamos acceder a tu cámara para que tomes fotos de tus productos."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
-        "projectId": "f5f29f05-3fbc-4f44-b160-c4db319981a5"
+        "projectId": "24810af0-22fc-48e4-a283-294e0db9dab1"
       }
-    }
+    },
+    "owner": "nextzyagency"
   }
 }
