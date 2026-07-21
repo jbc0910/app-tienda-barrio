@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useApp } from '../context/AppContext';
+import { useTienda } from '../context/TiendaContext';
 import { theme } from '../styles/theme';
 import { listCategorias, createCategoria, updateCategoria, deleteCategoria } from '../services/categorias';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,7 +39,7 @@ const ICONOS_DISPONIBLES = [
 ];
 
 export default function CategoriasAdminScreen() {
-  const { tienda } = useApp();
+  const { tienda } = useTienda();
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);

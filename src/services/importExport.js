@@ -1,4 +1,4 @@
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import * as XLSX from 'xlsx';
@@ -19,8 +19,12 @@ export async function exportarProductosExcel(productos) {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Productos");
 
-  // Convertimos a base64 usando la librería
-  const base64Data = XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' });
+  // Convertimos a base64 usando la librería (asíncrono para no bloquear UI)
+  const base64Data = await new Promise(resolve => {
+    setTimeout(() => {
+      resolve(XLSX.write(workbook, { type: 'base64', bookType: 'xlsx' }));
+    }, 0);
+  });
   const path = `${FileSystem.cacheDirectory}productos_export.xlsx`;
   
   await FileSystem.writeAsStringAsync(path, base64Data, { encoding: FileSystem.EncodingType.Base64 });
@@ -53,11 +57,14 @@ export async function leerExcelDeProductos() {
   // Leemos el archivo a base64 nativamente con expo
   const b64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
 
-  const workbook = XLSX.read(b64, { type: 'base64' });
-  const firstSheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[firstSheetName];
-  
-  const json = XLSX.utils.sheet_to_json(worksheet);
+  const json = await new Promise(resolve => {
+    setTimeout(() => {
+      const wb = XLSX.read(b64, { type: 'base64' });
+      const firstSheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[firstSheetName];
+      resolve(XLSX.utils.sheet_to_json(ws));
+    }, 0);
+  });
   if (!json || json.length === 0) throw new Error('El archivo Excel está vacío.');
 
   const registros = [];

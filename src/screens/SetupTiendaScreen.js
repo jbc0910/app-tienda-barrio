@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
+import { useTienda } from '../context/TiendaContext';
 import { supabase } from '../config/supabase';
 import { theme } from '../styles/theme';
 import { Input } from '../components/Input';
@@ -27,7 +28,8 @@ const sanitizeSlug = (text) =>
 const SLUG_CHECK_DEBOUNCE_MS = 500;
 
 export default function SetupTiendaScreen() {
-  const { user, setTienda } = useApp();
+  const { user } = useAuth();
+  const { setTienda } = useTienda();
 
   const [nombreTienda, setNombreTienda] = useState('');
   const [slug, setSlug] = useState('');

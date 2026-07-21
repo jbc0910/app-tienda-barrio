@@ -46,11 +46,41 @@ function extractStoragePath(imagenUrl) {
   return imagenUrl.slice(idx + marker.length);
 }
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 async function deleteProductoImagenSilencioso(imagenUrl) {
   const path = extractStoragePath(imagenUrl);
   if (!path) return;
   const { error } = await supabase.storage.from(PRODUCTOS_BUCKET).remove([path]);
-  if (error) console.warn('[products] No se pudo borrar la imagen anterior:', error.message);
+  if (error) {
+    console.warn('[products] No se pudo borrar la imagen anterior:', error.message);
+    try {
+      const pendingStr = await AsyncStorage.getItem('pending_image_deletions');
+      const pending = pendingStr ? JSON.parse(pendingStr) : [];
+      pending.push(path);
+      await AsyncStorage.setItem('pending_image_deletions', JSON.stringify(pending));
+    } catch (e) {
+      console.error('Error guardando imagen pendiente de borrado', e);
+    }
+  }
+}
+
+export async function retryPendingImageDeletions() {
+  try {
+    const pendingStr = await AsyncStorage.getItem('pending_image_deletions');
+    const pending = pendingStr ? JSON.parse(pendingStr) : [];
+    if (pending.length === 0) return;
+
+    const { error } = await supabase.storage.from(PRODUCTOS_BUCKET).remove(pending);
+    if (!error) {
+      await AsyncStorage.removeItem('pending_image_deletions');
+      console.log(`[products] Se eliminaron ${pending.length} imágenes pendientes.`);
+    } else {
+      console.warn('[products] Error reintentando borrado de imágenes:', error.message);
+    }
+  } catch (e) {
+    console.error('Error en retryPendingImageDeletions', e);
+  }
 }
 
 export async function createProducto({ tiendaId, nombre, precio, stock, categoria_id, precio_oferta, imageAsset }) {

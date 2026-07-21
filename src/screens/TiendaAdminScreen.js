@@ -1,19 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useApp } from '../context/AppContext';
+import { useForm, Controller } from 'react-hook-form';
+import { useTienda } from '../context/TiendaContext';
+import { useAuth } from '../context/AuthContext';
 import { theme } from '../styles/theme';
 import { updateTienda } from '../services/tienda';
 
 export default function TiendaAdminScreen({ navigation }) {
-  const { tienda, setTienda, signOut } = useApp();
+  const { tienda, setTienda } = useTienda();
+  const { signOut } = useAuth();
 
-  const [nombre, setNombre] = useState(tienda?.nombre_tienda || '');
-  const [whatsapp, setWhatsapp] = useState(tienda?.telefono_whatsapp || '');
-  const [horario, setHorario] = useState(tienda?.horario_atencion || '');
+  const { control, handleSubmit, reset } = useForm({
+    defaultValues: {
+      nombre: tienda?.nombre_tienda || '',
+      whatsapp: tienda?.telefono_whatsapp || '',
+      horario: tienda?.horario_atencion || '',
+    }
+  });
+
+  useEffect(() => {
+    reset({
+      nombre: tienda?.nombre_tienda || '',
+      whatsapp: tienda?.telefono_whatsapp || '',
+      horario: tienda?.horario_atencion || '',
+    });
+  }, [tienda, reset]);
+
   const [metodosPago, setMetodosPago] = useState(tienda?.metodos_pago || []);
-
   const [saving, setSaving] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -22,8 +37,8 @@ export default function TiendaAdminScreen({ navigation }) {
   const [titular, setTitular] = useState('');
   const [numero, setNumero] = useState('');
 
-  const handleSaveConfig = async () => {
-    if (!nombre.trim()) {
+  const onSubmit = async (data) => {
+    if (!data.nombre.trim()) {
       Alert.alert('Error', 'El nombre de la tienda es requerido');
       return;
     }
@@ -31,9 +46,9 @@ export default function TiendaAdminScreen({ navigation }) {
     setSaving(true);
     try {
       const updates = {
-        nombre_tienda: nombre.trim(),
-        telefono_whatsapp: whatsapp.trim(),
-        horario_atencion: horario.trim(),
+        nombre_tienda: data.nombre.trim(),
+        telefono_whatsapp: data.whatsapp.trim(),
+        horario_atencion: data.horario.trim(),
         metodos_pago: metodosPago,
       };
       const updatedTienda = await updateTienda(tienda.id, updates);
@@ -79,31 +94,49 @@ export default function TiendaAdminScreen({ navigation }) {
 
         <View style={styles.card}>
           <Text style={styles.label}>Nombre de la tienda</Text>
-          <TextInput
-            style={styles.input}
-            value={nombre}
-            onChangeText={setNombre}
+          <Controller
+            control={control}
+            name="nombre"
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
           />
         </View>
 
         <View style={styles.card}>
           <Text style={styles.label}>Número de WhatsApp (con código de país)</Text>
-          <TextInput
-            style={styles.input}
-            value={whatsapp}
-            onChangeText={setWhatsapp}
-            keyboardType="phone-pad"
-            placeholder="Ej. +573001234567"
+          <Controller
+            control={control}
+            name="whatsapp"
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={onChange}
+                keyboardType="phone-pad"
+                placeholder="Ej. +573001234567"
+              />
+            )}
           />
         </View>
 
         <View style={styles.card}>
           <Text style={styles.label}>Horario de atención</Text>
-          <TextInput
-            style={styles.input}
-            value={horario}
-            onChangeText={setHorario}
-            placeholder="Ej. Lunes a Sábado, 8am a 8pm"
+          <Controller
+            control={control}
+            name="horario"
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={onChange}
+                placeholder="Ej. Lunes a Sábado, 8am a 8pm"
+              />
+            )}
           />
         </View>
 
@@ -136,7 +169,7 @@ export default function TiendaAdminScreen({ navigation }) {
 
         <TouchableOpacity 
           style={[styles.saveBtn, saving && styles.disabledBtn]} 
-          onPress={handleSaveConfig}
+          onPress={handleSubmit(onSubmit)}
           disabled={saving}
         >
           {saving ? <ActivityIndicator color="#fff" /> : (

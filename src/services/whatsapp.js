@@ -34,7 +34,12 @@ export const enviarPedidoWhatsApp = async (tienda, cartItems, subtotal, datosCli
   if (notas) {
     mensaje += `\n*Notas:* ${notas}\n`;
   }
-
+  
+  mensaje += `\n*Método de pago:* ${datosCliente.metodoPago === 'efectivo' ? 'Efectivo' : 'Transferencia'}\n`;
+  if (datosCliente.metodoPago === 'efectivo' && datosCliente.montoEfectivo) {
+    mensaje += `*Paga con:* $${datosCliente.montoEfectivo}\n`;
+  }
+  
   const url = generarEnlaceWhatsApp(tienda.telefono_whatsapp, mensaje);
   
   const canOpen = await Linking.canOpenURL(url);

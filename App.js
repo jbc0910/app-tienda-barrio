@@ -11,22 +11,24 @@ LogBox.ignoreLogs([
   'InteractionManager has been deprecated',
 ]);
 
-import { AppProvider, useApp } from './src/context/AppContext';
-import { supabase } from './src/config/supabase';
-import { theme } from './src/styles/theme';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { TiendaProvider, useTienda } from '@/context/TiendaContext';
+import { supabase } from '@/config/supabase';
+import { theme } from '@/styles/theme';
 
-import LoginScreen from './src/screens/LoginScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-import SetupTiendaScreen from './src/screens/SetupTiendaScreen';
-import DashboardScreen from './src/screens/DashboardScreen';
-import CatalogoScreen from './src/screens/CatalogoScreen';
-import CartScreen from './src/screens/CartScreen';
-import { CartProvider } from './src/context/CartContext';
+import LoginScreen from '@/screens/LoginScreen';
+import RegisterScreen from '@/screens/RegisterScreen';
+import SetupTiendaScreen from '@/screens/SetupTiendaScreen';
+import DashboardScreen from '@/screens/DashboardScreen';
+import CatalogoScreen from '@/screens/CatalogoScreen';
+import CartScreen from '@/screens/CartScreen';
+import { CartProvider } from '@/context/CartContext';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
-  const { user, tienda, isGlobalLoading } = useApp();
+  const { user, isGlobalLoading } = useAuth();
+  const { tienda } = useTienda();
 
   if (isGlobalLoading) {
     return (
@@ -72,13 +74,15 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppProvider>
-        <CartProvider>
-          <NavigationContainer>
-            <RootNavigator />
-          </NavigationContainer>
-        </CartProvider>
-      </AppProvider>
+      <AuthProvider>
+        <TiendaProvider>
+          <CartProvider>
+            <NavigationContainer>
+              <RootNavigator />
+            </NavigationContainer>
+          </CartProvider>
+        </TiendaProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }

@@ -12,7 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useApp } from '../context/AppContext';
+import { useTienda } from '../context/TiendaContext';
 import { theme } from '../styles/theme';
 import { ProductCard } from '../components/ProductCard';
 import { ProductFormModal } from '../components/ProductFormModal';
@@ -25,10 +25,9 @@ import {
 import { listCategorias } from '../services/categorias';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { exportarProductosExcel, leerExcelDeProductos } from '../services/importExport';
-import { createProducto as _createProductoRaw } from '../services/products';
 
 export default function ProductosAdminScreen({ navigation }) {
-  const { tienda } = useApp();
+  const { tienda } = useTienda();
 
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
