@@ -52,7 +52,7 @@ export default function CartScreen({ route, navigation }) {
       Alert.alert('Faltan datos', 'Por favor ingresa tu nombre.');
       return;
     }
-    if (!tienda?.whatsapp) {
+    if (!tienda?.telefono_whatsapp) {
       Alert.alert('Error', 'Esta tienda no tiene un número de WhatsApp configurado.');
       return;
     }

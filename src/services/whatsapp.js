@@ -12,7 +12,7 @@ export const generarEnlaceWhatsApp = (telefono, mensaje) => {
 };
 
 export const enviarPedidoWhatsApp = async (tienda, cartItems, subtotal, datosCliente) => {
-  if (!tienda.whatsapp) {
+  if (!tienda.telefono_whatsapp) {
     throw new Error('La tienda no tiene un número de WhatsApp configurado.');
   }
 
@@ -35,7 +35,7 @@ export const enviarPedidoWhatsApp = async (tienda, cartItems, subtotal, datosCli
     mensaje += `\n*Notas:* ${notas}\n`;
   }
 
-  const url = generarEnlaceWhatsApp(tienda.whatsapp, mensaje);
+  const url = generarEnlaceWhatsApp(tienda.telefono_whatsapp, mensaje);
   
   const canOpen = await Linking.canOpenURL(url);
   
