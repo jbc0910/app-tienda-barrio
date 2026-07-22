@@ -38,7 +38,8 @@
           "cameraPermission": "Necesitamos acceder a tu cámara para que tomes fotos de tus productos."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {

@@ -61,7 +61,16 @@ const RootNavigator = () => {
 export default function App() {
   useEffect(() => {
     const handleDeepLink = async (event) => {
-      await supabase.auth.exchangeCodeForSession(event.url);
+      if (!event?.url) return;
+      try {
+        const urlObj = new URL(event.url);
+        const code = urlObj.searchParams.get('code');
+        if (code) {
+          await supabase.auth.exchangeCodeForSession(code);
+        }
+      } catch (err) {
+        console.warn('Error processing deep link:', err);
+      }
     };
 
     Linking.getInitialURL().then(url => {

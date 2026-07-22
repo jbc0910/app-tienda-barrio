@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -12,6 +13,10 @@ import { supabase } from '../config/supabase';
 import { theme } from '../styles/theme';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -53,6 +58,45 @@ export default function LoginScreen({ navigation }) {
       console.error('[LoginScreen] Error inesperado:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOAuth = async (provider) => {
+    setGlobalError('');
+    setLoading(true);
+    try {
+      const redirectUri = makeRedirectUri();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: redirectUri,
+          skipBrowserRedirect: Platform.OS !== 'web',
+        },
+      });
+
+      if (error) {
+        setGlobalError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (Platform.OS !== 'web' && data?.url) {
+        const res = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
+        if (res.type === 'success' && res.url) {
+          const urlObj = new URL(res.url);
+          const code = urlObj.searchParams.get('code');
+          if (code) {
+            await supabase.auth.exchangeCodeForSession(code);
+          }
+        }
+      }
+    } catch (err) {
+      setGlobalError(`Error de conexión con ${provider}. Intenta de nuevo.`);
+      console.error(`[LoginScreen] Error OAuth ${provider}:`, err);
+    } finally {
+      if (Platform.OS !== 'web') {
+        setLoading(false);
+      }
     }
   };
 
@@ -145,11 +189,12 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.orText}>o continuar con</Text>
 
             <View style={styles.socialContainer}>
-              <TouchableOpacity style={styles.socialButton}>
-                <MaterialCommunityIcons name="google" size={20} color="white" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <MaterialCommunityIcons name="apple" size={20} color="white" />
+              <TouchableOpacity 
+                style={styles.socialButton}
+                onPress={() => handleOAuth('google')}
+                disabled={loading}
+              >
+                <MaterialCommunityIcons name="google" size={20} color={theme.colors.onSurface} />
               </TouchableOpacity>
             </View>
           </View>
