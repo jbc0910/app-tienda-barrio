@@ -7,6 +7,7 @@ import { useTienda } from '../context/TiendaContext';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../styles/theme';
 import { updateTienda } from '../services/tienda';
+import AccountSettingsModal from '../components/AccountSettingsModal';
 
 export default function TiendaAdminScreen({ navigation }) {
   const { tienda, setTienda } = useTienda();
@@ -187,6 +188,9 @@ export default function TiendaAdminScreen({ navigation }) {
           <MaterialCommunityIcons name="open-in-new" size={20} color={theme.colors.primary} />
           <Text style={styles.viewStoreText}>Ver mi Tienda (Vista Cliente)</Text>
         </TouchableOpacity>
+
+        {/* Módulo de configuración de cuenta */}
+        <AccountSettingsModal />
 
         <TouchableOpacity 
           style={styles.logoutBtn}

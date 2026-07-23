@@ -18,6 +18,7 @@ import { theme } from '@/styles/theme';
 
 import LoginScreen from '@/screens/LoginScreen';
 import RegisterScreen from '@/screens/RegisterScreen';
+import ForgotPasswordScreen from '@/screens/ForgotPasswordScreen';
 import SetupTiendaScreen from '@/screens/SetupTiendaScreen';
 import DashboardScreen from '@/screens/DashboardScreen';
 import CatalogoScreen from '@/screens/CatalogoScreen';
@@ -44,6 +45,7 @@ const RootNavigator = () => {
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         </>
       ) : !tienda ? (
         <Stack.Screen name="SetupTienda" component={SetupTiendaScreen} />
